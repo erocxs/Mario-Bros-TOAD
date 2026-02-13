@@ -1,4 +1,4 @@
-from game import Game
+from mario_game import Game
 from arcade_machine_sdk import GameMeta
 import pygame
 
