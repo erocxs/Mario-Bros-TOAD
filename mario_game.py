@@ -16,7 +16,7 @@ class Game(GameBase):
         self.ASSETS_DIR = self.BASE_DIR / "assets"
         
         try:
-            path_coin = self.ASSETS_DIR / "music" / "p-ping.mp3"
+            path_coin = self.ASSETS_DIR / "sounds" / "p-ping.mp3"
             self.sonido_click = pygame.mixer.Sound(str(path_coin))
         except:
             self.sonido_click = None
