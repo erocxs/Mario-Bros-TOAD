@@ -1,6 +1,6 @@
 import pygame
 from pathlib import Path
-from src.utils.constants import NIVEL_1
+from src.utils.constants import *
 from arcade_machine_sdk import GameBase, json
 
 class Level1State:
@@ -8,49 +8,9 @@ class Level1State:
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
-        
+        self.scroll_x=0
         # 2. El diccionario de tu amiga (usando self.obtener_grafico)
-        self.num = {
-            1: None,
-            2: self.obtener_grafico("smb-nube-2.png"),
-            3: self.obtener_grafico("smb-nube-3.png"),
-            4: self.obtener_grafico("smb-nube-4.png"),
-            5: self.obtener_grafico("smb-mastil-bola.png"),
-            6: self.obtener_grafico("smb-nube-6.png"),
-            7: self.obtener_grafico("smb-nube-7.png"),
-            8: self.obtener_grafico("smb-nube-8.png"),
-            9: self.obtener_grafico("smb-mastil-bandera2.png"),
-            10: self.obtener_grafico("smb-mastil-bandera1.png"),
-            11: None, 12: None,
-            13: self.obtener_grafico("smb-mastil-1.png"),
-            14: self.obtener_grafico("smb-interrogacion.png"),
-            15: self.obtener_grafico("smb-block-ladrillo.png"),
-            16: self.obtener_grafico("smb-block-piramide.png"),
-            17: self.obtener_grafico("smb-mastil-2.png"),
-            18: None, 19: None,
-            20: self.obtener_grafico("smb-castillo-20.png"),
-            21: self.obtener_grafico("smb-tuberia-arriba-iz.png"),
-            22: self.obtener_grafico("smb-tuberia-arriba-de.png"),
-            23: self.obtener_grafico("smb-castillo-ventana-de.png"),
-            24: self.obtener_grafico("smb-castillo-block-ladrillos.png"),
-            25: self.obtener_grafico("smb-castillo-ventana-iz.png"),
-            26: self.obtener_grafico("smb-hierba-26.png"),
-            27: self.obtener_grafico("smb-tuberia-abajo-iz.png"),
-            28: self.obtener_grafico("smb-tuberia-abajo-de.png"),
-            29: self.obtener_grafico("smb-castillo-29.png"),
-            30: self.obtener_grafico("smb-monticulo-iz.png"),
-            31: self.obtener_grafico("smb-monticulo-centro.png"),
-            32: self.obtener_grafico("smb-monticulo-de.png"),
-            33: self.obtener_grafico("smb-castillo-33.png"),
-            34: self.obtener_grafico("smb-monticulo-34.png"),
-            35: self.obtener_grafico("smb-monticulo-35.png"),
-            36: self.obtener_grafico("smb-hierba-36.png"),
-            37: self.obtener_grafico("smb-hierba-37.png"),
-            38: self.obtener_grafico("smb-hierba-38.png"),
-            39: self.obtener_grafico("smb-castillo-39.png"),
-            40: self.obtener_grafico("smb-suelo.png"),
-            41: self.obtener_grafico("smb-block-desactivado.png"),
-        }
+        self.num = biblioteca(self)
 
     def obtener_grafico(self, nombreArchivo):
         # Ajustado para usar la ruta dinámica
@@ -62,18 +22,65 @@ class Level1State:
         return (image, rect)
 
     def update(self, dt):
-        pass
+        keys= pygame.key.get_pressed() #toma que tecla se esta presionando 
+        #K_RIGHT SERIA LA FLECHA HACIA LA DERECHA
+        if keys[pygame.K_RIGHT]:
+            self.scroll_x += 5
+        #K_LEFT SERIA LA FLECHA HACIA LA IZQUIERDA  
+        if keys[pygame.K_LEFT]:
+            self.scroll_x -= 5
 
-    def draw(self, surface):
-        # Pintamos el fondo azul cielo
-        surface.fill((100, 170, 180))
-        FILAS = 15
-        COLUMNAS = 212
-        for y in range(FILAS):
-            for x in range(COLUMNAS):
-                index = y * COLUMNAS + x
-                tile = NIVEL_1[index]
-                if tile in self.num and self.num[tile] is not None:
-                    # Dibujamos la imagen (posición 0 de la tupla)
-                    imagen = self.num[tile][0]
-                    surface.blit(imagen, (x * 53, y * 53))
+        # Limitar el scroll para no salirte del mapa (opcional pero recomendado)
+        if self.scroll_x < 0: 
+            self.scroll_x = 0
+    
+    # El límite derecho sería: (Columnas * AnchoTile) - AnchoPantalla
+        limite_derecho = (212 * 53) - 1024 
+        if self.scroll_x > limite_derecho:
+            self.scroll_x = limite_derecho
+
+    def draw(self, surface, Nivel=NIVEL_1):
+         surface.fill((100, 170, 180))
+         TILE_X=53 #ancho del bloque
+         TILE_Y=53 #alto del bloque
+         FILAS = 15
+         COLUMNAS = 212 
+    # Dividimos el ancho de la pantalla (1024) entre el ancho del bloque (32).
+    # Esto evita procesar las 212 columnas si solo vemos 32.
+         tiles_on_screen_x = surface.get_width() // TILE_X
+    # Si te has movido 64 píxeles (scroll_x = 64) y cada bloque mide 32,
+    # el start_tile_x será 2. Empezaremos a dibujar desde la columna 2.
+         start_tile_x = int(self.scroll_x // TILE_X)
+    # Como Pygame dibuja desde arriba (Y=0), restamos la altura del mapa (15 filas * 32px)
+    # a la altura de la pantalla (768px) para que el suelo quede abajo.
+         offset_y = surface.get_height() - (FILAS * TILE_Y)
+
+    # EMPIEZA EL DIBUJO
+         for y in range(FILAS):
+        # Solo recorremos las columnas que caben en la pantalla (+1 para el borde derecho).
+            for x in range(tiles_on_screen_x + 1):  
+            # (y * 212) salta a la fila correcta.
+            # (start_tile_x + x) se mueve a la columna correcta según la cámara.
+                tile_index = y * COLUMNAS + (start_tile_x + x)
+
+            # Verificación de seguridad: No intentar leer fuera de la lista.
+                if tile_index >= len(Nivel):
+                    continue  
+
+            # Obtenemos el número del bloque (ID)
+                tile = Nivel[tile_index]
+
+            # Solo dibujamos si el ID no es "None" (como el cielo).
+                if self.num[tile] is not None:
+                # Usamos el módulo (%) para saber cuántos píxeles "sobran".
+                # Esto permite que los bloques se deslicen suavemente píxel a píxel.
+                     pantalla_x = x * TILE_X - (self.scroll_x % TILE_X)
+                # Aplicamos la fila multiplicada por el tamaño + el offset del suelo.
+                     pantalla_y = (y * TILE_Y) + offset_y
+                
+                # Dibujamos la imagen (posición [0] de tu diccionario) en la pantalla.
+                     surface.blit(self.num[tile][0], (pantalla_x, pantalla_y))
+                else:
+    # Si el bloque es None (como el cielo), no hacemos nada y pasamos al siguiente
+                        continue
+        
