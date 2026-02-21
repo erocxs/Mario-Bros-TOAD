@@ -4,13 +4,18 @@ from src.utils.constants import *
 from arcade_machine_sdk import GameBase, json
 
 class Level1State:
-    def __init__(self):
+    def __init__(self, hud_reference=None):
+        self.hud = hud_reference
+        if self.hud is not None:
+            self.hud.set_world("1-1")
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
         self.scroll_x=0
         # 2. El diccionario de tu amiga (usando self.obtener_grafico)
         self.num = biblioteca(self)
+        
+        self.path_musica = self.ASSETS_DIR / "music" / "musica-mario-bros.mp3"
 
     def obtener_grafico(self, nombreArchivo):
         # Ajustado para usar la ruta dinámica
