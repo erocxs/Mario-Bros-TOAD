@@ -3,6 +3,7 @@ from arcade_machine_sdk import GameBase
 from src.states.menu import MenuState
 from src.states.nivel1 import Level1State
 from pathlib import Path
+from src.components.hud import HUD
 
 class Game(GameBase):
     def __init__(self, metadata):
@@ -26,6 +27,7 @@ class Game(GameBase):
         super().start(surface)
         self.menu = MenuState(self.sonido_click)
         self.nivel1 = Level1State()
+        self.hud = HUD()
 
     def handle_events(self, events: list[pygame.event.Event]):
         if self.estado_actual == "MENU" and self.menu:
@@ -39,7 +41,8 @@ class Game(GameBase):
         
         elif self.estado_actual == "JUEGO" and self.nivel1:
             self.nivel1.update(dt)
-
+            
+        self.hud.update(dt)
     def render(self, surface=None):
         target_surface = surface if surface is not None else self.surface
         
@@ -47,3 +50,4 @@ class Game(GameBase):
             self.menu.draw(target_surface)
         elif self.estado_actual == "JUEGO" and self.nivel1:
             self.nivel1.draw(target_surface)
+            self.hud.render(target_surface)
