@@ -5,15 +5,18 @@ from src.components.player import Mario
 
 
 class Level1State:
-    def __init__(self):
-        self.nivel = 1
+    def __init__(self, hud_reference=None):
+        self.hud = hud_reference
+        if self.hud is not None:
+            self.hud.set_world("1-1")
+            self.nivel = 1
         self.ESCALA = ESCALA #variable para escalar los tiles al tamaño que queramos
         self.TILE_X = TILE_X #ancho del bloque
         self.TILE_Y = TILE_Y#alto del bloque
         self.FILAS = 15
         self.COLUMNAS = 212
-        self.offset_y = 0
-        
+        self.offset_y = 0 
+
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
@@ -23,10 +26,13 @@ class Level1State:
         
     }
         self.num = biblioteca(self)
+
         self.TILES_SOLIDOS = [14, 15, 16, 21, 22, 27, 28, 40, 41]
         self.END_WORLD_SCROLL = [2985]
         self.GRAVEDAD = 1.0
         self.instanciar_objetos()
+        self.path_musica = self.ASSETS_DIR / "music" / "musica-mario-bros.mp3"
+
 
     def obtener_grafico(self, nombreArchivo):
         # Ajustado para usar la ruta dinámica
