@@ -1,4 +1,3 @@
-
 NIVEL_1 = [
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -232,6 +231,7 @@ def biblioteca(self):
             40: self.obtener_grafico("smb-suelo.png"),
             41: self.obtener_grafico("smb-block-desactivado.png"),
         }
-    
 
-       
+ESCALA = 3
+TILE_X = 16 * ESCALA
+TILE_Y = 16 * ESCALA

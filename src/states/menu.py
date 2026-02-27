@@ -36,20 +36,18 @@ class MenuState:
         self.esta_encima = False
 
     def handle_events(self, events):
-        mouse_pos = pygame.mouse.get_pos()
-        clic = pygame.mouse.get_pressed()
-        
-        if self.area_clic_real.collidepoint(mouse_pos):
-            self.esta_encima = True
-            if clic[0]:
-                if self.sonido_boton:
-                    self.sonido_boton.play()
-                pygame.mixer.music.fadeout(500)
-                return "SELECTOR"
-        else:
-            self.esta_encima = False
+
+        teclas = pygame.key.get_pressed()
             
-        return "MENU"
+        # 3. CAMBIO CLAVE: Detectar la tecla Espacio
+        if teclas[pygame.K_SPACE]:
+            if self.sonido_boton:
+                self.sonido_boton.play()
+            pygame.mixer.music.fadeout(500)
+            return "SELECTOR"
+            
+        return "MENU" 
+        
 
     def update(self, dt):
         if not self.esta_encima:

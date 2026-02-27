@@ -1,86 +1,86 @@
 import pygame
 from pathlib import Path
-from src.utils.constants import *
-from arcade_machine_sdk import GameBase, json
+from src.utils.constantsmario import *
+from src.components.player import Mario
+
 
 class Level1State:
     def __init__(self):
+        self.nivel = 1
+        self.ESCALA = ESCALA #variable para escalar los tiles al tamaño que queramos
+        self.TILE_X = TILE_X #ancho del bloque
+        self.TILE_Y = TILE_Y#alto del bloque
+        self.FILAS = 15
+        self.COLUMNAS = 212
+        self.offset_y = 0
+        
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
         self.scroll_x=0
-        # 2. El diccionario de tu amiga (usando self.obtener_grafico)
+        self.listas_sprites = {
+        "all_sprites": pygame.sprite.Group(),
+        
+    }
         self.num = biblioteca(self)
+        self.TILES_SOLIDOS = [14, 15, 16, 21, 22, 27, 28, 40, 41]
+        self.END_WORLD_SCROLL = [2985]
+        self.GRAVEDAD = 1.0
+        self.instanciar_objetos()
 
     def obtener_grafico(self, nombreArchivo):
         # Ajustado para usar la ruta dinámica
         IMAGE_PATH = self.ASSETS_DIR / "img" / nombreArchivo
-        img = pygame.image.load(str(IMAGE_PATH))
-        image = pygame.transform.scale(img, (53, 53))
+        img = pygame.image.load(str(IMAGE_PATH)).convert_alpha()
+        image = pygame.transform.scale(img, (img.get_width() * self.ESCALA, img.get_height()* self.ESCALA))
         image.set_colorkey((255, 255, 255))
         rect = image.get_rect()
         return (image, rect)
 
-    def update(self, dt):
-        keys= pygame.key.get_pressed() #toma que tecla se esta presionando 
-        #K_RIGHT SERIA LA FLECHA HACIA LA DERECHA
-        if keys[pygame.K_RIGHT]:
-            self.scroll_x += 5
-        #K_LEFT SERIA LA FLECHA HACIA LA IZQUIERDA  
-        if keys[pygame.K_LEFT]:
-            self.scroll_x -= 5
 
-        # Limitar el scroll para no salirte del mapa (opcional pero recomendado)
-        if self.scroll_x < 0: 
-            self.scroll_x = 0
-    
-    # El límite derecho sería: (Columnas * AnchoTile) - AnchoPantalla
-        limite_derecho = (212 * 53) - 1024 
-        if self.scroll_x > limite_derecho:
-            self.scroll_x = limite_derecho
+    def instanciar_objetos(self):
+        """Instanciar/re-instanciar Mario, enemigos, etc..."""
+        # Instanciar Mario:
+        self.mario = Mario(self, 11,13)
+       
+        self.listas_sprites["all_sprites"].add(self.mario)
+        
+        
+    def update(self, dt):
+       
+        self.listas_sprites["all_sprites"].update()
+      
+            
+   
+
 
     def draw(self, surface, Nivel=NIVEL_1):
          surface.fill((100, 170, 180))
-         TILE_X=53 #ancho del bloque
-         TILE_Y=53 #alto del bloque
-         FILAS = 15
-         COLUMNAS = 212 
+         
+         TILE_X=32 #ancho del bloque
+         TILE_Y=32 #alto del bloque 
     # Dividimos el ancho de la pantalla (1024) entre el ancho del bloque (32).
     # Esto evita procesar las 212 columnas si solo vemos 32.
-         tiles_on_screen_x = surface.get_width() // TILE_X
-    # Si te has movido 64 píxeles (scroll_x = 64) y cada bloque mide 32,
-    # el start_tile_x será 2. Empezaremos a dibujar desde la columna 2.
-         start_tile_x = int(self.scroll_x // TILE_X)
-    # Como Pygame dibuja desde arriba (Y=0), restamos la altura del mapa (15 filas * 32px)
-    # a la altura de la pantalla (768px) para que el suelo quede abajo.
-         offset_y = surface.get_height() - (FILAS * TILE_Y)
-
-    # EMPIEZA EL DIBUJO
-         for y in range(FILAS):
+         tiles_on_screen_x = surface.get_width() // self.TILE_X
+         start_tile_x = int(self.scroll_x // self.TILE_X)
+         self.offset_y = surface.get_height() - (self.FILAS * self.TILE_Y)
+         
+         for y in range(self.FILAS):
         # Solo recorremos las columnas que caben en la pantalla (+1 para el borde derecho).
-            for x in range(tiles_on_screen_x + 1):  
-            # (y * 212) salta a la fila correcta.
-            # (start_tile_x + x) se mueve a la columna correcta según la cámara.
-                tile_index = y * COLUMNAS + (start_tile_x + x)
-
+            for x in range(tiles_on_screen_x + 2):  
+                tile_index = y * self.COLUMNAS + (start_tile_x + x)
             # Verificación de seguridad: No intentar leer fuera de la lista.
                 if tile_index >= len(Nivel):
                     continue  
-
             # Obtenemos el número del bloque (ID)
                 tile = Nivel[tile_index]
-
             # Solo dibujamos si el ID no es "None" (como el cielo).
                 if self.num[tile] is not None:
-                # Usamos el módulo (%) para saber cuántos píxeles "sobran".
-                # Esto permite que los bloques se deslicen suavemente píxel a píxel.
-                     pantalla_x = x * TILE_X - (self.scroll_x % TILE_X)
-                # Aplicamos la fila multiplicada por el tamaño + el offset del suelo.
-                     pantalla_y = (y * TILE_Y) + offset_y
-                
-                # Dibujamos la imagen (posición [0] de tu diccionario) en la pantalla.
+                     pantalla_x = x * self.TILE_X - (self.scroll_x % self.TILE_X)
+                     pantalla_y = (y * self.TILE_Y) + self.offset_y
                      surface.blit(self.num[tile][0], (pantalla_x, pantalla_y))
                 else:
-    # Si el bloque es None (como el cielo), no hacemos nada y pasamos al siguiente
+                # Si el bloque es None (como el cielo), no hacemos nada y pasamos al siguiente
                         continue
-        
+         self.listas_sprites["all_sprites"].draw(surface)
+         #self.listas_sprites["mario"].draw(surface)
