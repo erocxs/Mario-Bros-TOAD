@@ -59,6 +59,16 @@ class Mario(pygame.sprite.Sprite):
     def update(self):
         self.mover() 
         self.animacion()
+        self.chequear_muerte()
+        
+    def chequear_muerte(self):
+        if self.rect.y > 800: 
+            self.game.quitar_vida() # Avisa al nivel
+
+    def morir(self):
+        # Esta función ya no es tan necesaria si chequear_muerte 
+        # llama directamente a quitar_vida, pero mantenla vacía o con un print
+        pass
         
     def mover(self):
         """Controles-Mario y movimiento (vertical y horizontal)"""
@@ -99,7 +109,7 @@ class Mario(pygame.sprite.Sprite):
         self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
 
         # Mover scroll (mario no se mueve realmente):
-        self.game.scroll_x += self.acc
+        self.game.game.scroll_x += self.acc
         self.limites_mundo()
         
     def gestionar_aceleracion(self, flip):
@@ -149,8 +159,8 @@ class Mario(pygame.sprite.Sprite):
         margen_tiles = 2  # chequeamos un margen alrededor de Mario
 
         # Calculamos los rangos de los bucles for (checkeando solo cercanos, NO todo el nivel):
-        col_inicio = max((self.rect.left + self.game.scroll_x) // self.TX - margen_tiles, 0)
-        col_fin = min((self.rect.right + self.game.scroll_x) // self.TX + margen_tiles, ancho_tiles)
+        col_inicio = max((self.rect.left + self.game.game.scroll_x) // self.TX - margen_tiles, 0)
+        col_fin = min((self.rect.right + self.game.game.scroll_x) // self.TX + margen_tiles, ancho_tiles)
 
         fila_inicio = max(self.rect.top // self.TY - margen_tiles, 0)
         fila_fin = min(self.rect.bottom // self.TY + margen_tiles, alto_tiles)
@@ -167,7 +177,7 @@ class Mario(pygame.sprite.Sprite):
 
                 # Averiguamos si el número de tile (id), está en la lista 'solidos':
                 if tile_id in self.game.TILES_SOLIDOS:
-                    tile_rect = pygame.Rect(col * self.TX - self.game.scroll_x, 
+                    tile_rect = pygame.Rect(col * self.TX - self.game.game.scroll_x, 
                         (fila * self.TY) + self.game.offset_y, 
                         self.TX, self.TY)
                     if mario_rect.colliderect(tile_rect):
@@ -237,7 +247,7 @@ class Mario(pygame.sprite.Sprite):
                 
     def limites_mundo(self):
         END_WORLD = self.game.END_WORLD_SCROLL[self.game.nivel - 1] * self.game.ESCALA 
-        if self.game.scroll_x <= 0:
-            self.game.scroll_x = 0 
-        elif self.game.scroll_x >= END_WORLD:
-            self.game.scroll_x = END_WORLD
+        if self.game.game.scroll_x <= 0:
+            self.game.game.scroll_x = 0 
+        elif self.game.game.scroll_x >= END_WORLD:
+            self.game.game.scroll_x = END_WORLD

@@ -6,7 +6,8 @@ from src.components.enemies import Goomba
 
 
 class Level1State:
-    def __init__(self, hud_reference=None):
+    def __init__(self, game_reference, hud_reference=None):
+        self.game = game_reference 
         self.hud = hud_reference
         if self.hud is not None:
             self.hud.set_world("1-1")
@@ -22,7 +23,7 @@ class Level1State:
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
-        self.scroll_x=0
+        #self.scroll_x=0
         self.listas_sprites = {
         "all_sprites": pygame.sprite.Group(),
             "mario": pygame.sprite.Group(),
@@ -61,20 +62,21 @@ class Level1State:
 
 
     def instanciar_objetos(self):
-        """Instanciar/re-instanciar Mario, enemigos, etc..."""
-        # Instanciar Mario:
-        self.mario = Mario(self, 11,13)
-       
+        # VACIAR TODO: Si no haces esto, los Marios se acumulan
+        self.listas_sprites["all_sprites"].empty()
+        self.listas_sprites["mario"].empty()
+        self.listas_sprites["enemigos"].empty()
+
+        # Crear el nuevo Mario
+        self.mario = Mario(self, 11, 13)
+        
+        # Añadirlo a los grupos limpios
         self.listas_sprites["all_sprites"].add(self.mario)
         self.listas_sprites["mario"].add(self.mario)
-       
 
-        # Instanciar Goombas:
-        for i in range(len(self.pos_goombas)):
-            ini_x, ini_y = self.pos_goombas[i][0], self.pos_goombas[i][1]
-
-            goomba = Goomba(self, ini_x, ini_y)
-            # self.listas_sprites["all_sprites"].add(goomba)
+        # Re-crear enemigos
+        for pos in self.pos_goombas:
+            goomba = Goomba(self, pos[0], pos[1])
             self.listas_sprites["enemigos"].add(goomba)
         
         
@@ -84,11 +86,16 @@ class Level1State:
        
         self.listas_sprites["all_sprites"].update()
         self.listas_sprites["enemigos"].update()
-      
+
+    def quitar_vida(self):
+        # Esta función llama a la del juego principal (mario_game.py)
+        # Asegúrate de que en el __init__ guardaste la referencia como self.game
+        if hasattr(self, 'game'):
+            self.game.quitar_vida() 
+        else:
+            print("Error: No tengo la referencia al juego principal")
             
-   
-
-
+            
     def draw(self, surface, Nivel=NIVEL_1):
          surface.fill((100, 170, 180))
          
@@ -97,7 +104,7 @@ class Level1State:
     # Dividimos el ancho de la pantalla (1024) entre el ancho del bloque (32).
     # Esto evita procesar las 212 columnas si solo vemos 32.
          tiles_on_screen_x = surface.get_width() // self.TILE_X
-         start_tile_x = int(self.scroll_x // self.TILE_X)
+         start_tile_x = int(self.game.scroll_x // self.TILE_X)
          self.offset_y = surface.get_height() - (self.FILAS * self.TILE_Y)
          
          for y in range(self.FILAS):
@@ -111,7 +118,7 @@ class Level1State:
                 tile = Nivel[tile_index]
             # Solo dibujamos si el ID no es "None" (como el cielo).
                 if self.num[tile] is not None:
-                     pantalla_x = x * self.TILE_X - (self.scroll_x % self.TILE_X)
+                     pantalla_x = x * self.TILE_X - (self.game.scroll_x % self.TILE_X)
                      pantalla_y = (y * self.TILE_Y) + self.offset_y
                      surface.blit(self.num[tile][0], (pantalla_x, pantalla_y))
                 else:
@@ -120,4 +127,4 @@ class Level1State:
          self.listas_sprites["all_sprites"].draw(surface)
          #self.listas_sprites["mario"].draw(surface)
          for enemigo in self.listas_sprites["enemigos"]:
-            surface.blit(enemigo.image, (enemigo.rect.x - self.scroll_x, enemigo.rect.y))
+            surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))

@@ -90,4 +90,4 @@ class Goomba(pygame.sprite.Sprite):
     
     
     def get_pos_x_mario(self):
-        return self.game.scroll_x + self.game.INI_POS_MARIO[0] * self.TX
+        return self.game.game.scroll_x + self.game.INI_POS_MARIO[0] * self.TX

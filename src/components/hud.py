@@ -35,7 +35,7 @@ class HUD:
     def add_score(self, points):
         self.score += points
 
-    def render(self, surface):
+    def render(self, surface, vidas):
         if surface is not None:
             # Colores y Textos
             score_title = self.font.render("MARIO", True, self.color)
@@ -46,10 +46,16 @@ class HUD:
             
             time_title = self.font.render("TIME", True, self.color)
             time_val = self.font.render(str(int(self.time)), True, self.color)
+            
+            lifes_title = self.font.render("LIVES", True, self.color)
+            lifes_val = self.font.render(str(vidas), True, self.color)
 
             # Coordenadas calculadas
             # Usamos un espacio vertical (ej: 30 píxeles) para la segunda línea
             line_spacing = 30 
+            
+            surface.blit(lifes_title, (BASE_WIDTH - 350, 20))
+            surface.blit(lifes_val, (BASE_WIDTH - 350, 20 + line_spacing))
             
             # Dibujamos MARIO (Izquierda)
             surface.blit(score_title, (50, 20))
