@@ -1,4 +1,4 @@
-from mario_game import Game
+from mario_game import Game   
 from arcade_machine_sdk import GameMeta
 import pygame
 
@@ -9,7 +9,7 @@ metadata = (GameMeta()
             .with_title("Super Mario Bros")
             .with_description("Juego de prueba")
             .with_release_date("10/02/2026")
-            .with_group_number(1)
+            .with_group_number(8)
             .add_tag("Plataforma")
             .add_author("Anelissa Espin, Erick Gomez, Abelardo Drika"))
 

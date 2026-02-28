@@ -1,3 +1,4 @@
+import pygame
 NIVEL_1 = [
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -235,3 +236,46 @@ def biblioteca(self):
 ESCALA = 3
 TILE_X = 16 * ESCALA
 TILE_Y = 16 * ESCALA
+
+def manejar_colisiones_obstaculos(context, direccion):
+        """Checkeamos los tiles del escenario que son 'solidos' (bloques, suelo, tuberias)"""
+        nivel = NIVEL_1
+        ancho_tiles = context.game.COLUMNAS
+
+        # Posición del goomba en tiles
+        col_inicio = max(0, context.rect.left // context.TX - 1)
+        col_fin = min(context.game.COLUMNAS, context.rect.right // context.TX + 2)
+        fila_inicio = max(0, context.rect.top // context.TX - 1)
+        fila_fin = min(context.game.FILAS, context.rect.bottom // context.TX + 2)
+
+        for fila in range(fila_inicio, fila_fin):
+            for col in range(col_inicio, col_fin):
+                # Obtenemos en el indice y el valor:
+                index = fila * ancho_tiles + col
+
+                if index >= len(nivel):
+                    continue
+
+                tile_id = nivel[index]
+
+                # Seleccionamos SOLO los 'tiles SOLIDOS':
+                if tile_id in context.game.TILES_SOLIDOS:
+                    tile_rect = pygame.Rect(col * context.TX, (fila * context.TX)+ context.game.offset_y, context.TX, context.TX) 
+                    if context.rect.colliderect(tile_rect):
+                        if direccion == context.DIRECC_HORIZONTAL:
+                            if context.vel_x > 0:  # Va a la derecha
+                                context.rect.right = tile_rect.left
+                                context.vel_x *= -1
+                            
+                            elif context.vel_x < 0:  # Va a la izquierda
+                                context.rect.left = tile_rect.right
+                                context.vel_x *= -1
+                                
+                                return
+
+                        elif direccion == context.DIRECC_VERTICAL:
+                            if context.vel_y > 0:  # Cayendo
+                                context.rect.bottom = tile_rect.top
+                                context.vel_y = 0
+                                context.en_suelo = True
+                                return

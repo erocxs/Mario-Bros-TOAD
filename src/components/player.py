@@ -50,7 +50,8 @@ class Mario(pygame.sprite.Sprite):
         self.GRAVEDAD = self.game.GRAVEDAD
         self.en_suelo = False
         self.saltando = False
-        self.POTENCIA_SALTO = -16
+        self.POTENCIA_SALTO = -19
+        self.POT_EXTRA = 1.75 
         # Velocidad de las animaciones:
         self.ultimo_update = pygame.time.get_ticks()
         self.VEL_FRAMES_ANIMA = 90
@@ -127,9 +128,9 @@ class Mario(pygame.sprite.Sprite):
    
     def saltar(self):
         if self.en_suelo:
-            self.vel_y = self.POTENCIA_SALTO 
+            self.vel_y = self.POTENCIA_SALTO - abs(self.acc_acum / self.POT_EXTRA)
             self.en_suelo = False
-            #self.saltando = True
+            self.saltando = True
             #self.game.sonidos.reproducir("salto")
     
             
@@ -182,7 +183,8 @@ class Mario(pygame.sprite.Sprite):
         # Acciones dependiendo de donde colisionemos (VERTICAL)
         if hor_ver == self.DIRECC_VERTICAL:
             if self.vel_y > 0:  # cayendo
-                if self.rect.bottom > tile_rect.top and self.rect.top < tile_rect.top:
+                if self.rect.bottom > tile_rect.top and self.rect.top < tile_rect.top and abs(
+                    self.rect.centerx - tile_rect.centerx) < self.TX - (self.game.ESCALA * 3):
                 
                     self.vel_y = 0
                     self.rect.bottom = tile_rect.top
@@ -190,7 +192,8 @@ class Mario(pygame.sprite.Sprite):
                     self.saltando = False
 
             elif self.vel_y < 0:  # subiendo
-                if self.rect.top < tile_rect.bottom and self.rect.bottom > tile_rect.bottom:
+                if self.rect.top < tile_rect.bottom and self.rect.bottom > tile_rect.bottom and abs(
+                    self.rect.centerx - tile_rect.centerx) < self.TX - (self.game.ESCALA * 3):
                 
                     self.vel_y = 0
                     self.rect.top = tile_rect.bottom
@@ -206,6 +209,11 @@ class Mario(pygame.sprite.Sprite):
             
     def animacion(self):
        
+       # ANIMACION SALTANDO:
+        if self.saltando:
+            self.image = self.lista_imagenes[5]
+            self.image = pygame.transform.flip(self.image, self.flip, False)
+            return
         ahora = pygame.time.get_ticks()
 
         if ahora - self.ultimo_update > self.VEL_FRAMES_ANIMA:
@@ -223,6 +231,8 @@ class Mario(pygame.sprite.Sprite):
                 # Si no, cambia la secuencia de animacion de forma normal:
                 self.image = self.lista_imagenes[self.anim_index]
                 self.image = pygame.transform.flip(self.image, self.flip, False)
+                
+        
                 
                 
     def limites_mundo(self):

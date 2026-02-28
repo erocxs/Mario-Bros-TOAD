@@ -2,6 +2,7 @@ import pygame
 from pathlib import Path
 from src.utils.constantsmario import *
 from src.components.player import Mario
+from src.components.enemies import Goomba
 
 
 class Level1State:
@@ -16,6 +17,7 @@ class Level1State:
         self.FILAS = 15
         self.COLUMNAS = 212
         self.offset_y = 0 
+        self.INI_POS_MARIO = (11, 13)
 
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -23,8 +25,22 @@ class Level1State:
         self.scroll_x=0
         self.listas_sprites = {
         "all_sprites": pygame.sprite.Group(),
-        
+            "mario": pygame.sprite.Group(),
+            "enemigos": pygame.sprite.Group(),
+            "bandera": pygame.sprite.Group(),
+            "escenario": pygame.sprite.Group(),
+            "textos": pygame.sprite.Group(),
     }
+        self.pos_goombas = [
+            (24, 13),
+            (50, 13), (52, 13),
+            (83, 1), (85, 1),
+            (98, 13), (100, 13),
+            (112, 13), (114, 13),
+            (124, 13), (126, 13),
+            (130, 13), (132, 13),
+            (173, 13), (175, 13)
+        ] #posiciones en las que van a aparecer los goombas en el nivel 1
         self.num = biblioteca(self)
 
         self.TILES_SOLIDOS = [14, 15, 16, 21, 22, 27, 28, 40, 41]
@@ -50,11 +66,24 @@ class Level1State:
         self.mario = Mario(self, 11,13)
        
         self.listas_sprites["all_sprites"].add(self.mario)
+        self.listas_sprites["mario"].add(self.mario)
+       
+
+        # Instanciar Goombas:
+        for i in range(len(self.pos_goombas)):
+            ini_x, ini_y = self.pos_goombas[i][0], self.pos_goombas[i][1]
+
+            goomba = Goomba(self, ini_x, ini_y)
+            # self.listas_sprites["all_sprites"].add(goomba)
+            self.listas_sprites["enemigos"].add(goomba)
+        
+        
         
         
     def update(self, dt):
        
         self.listas_sprites["all_sprites"].update()
+        self.listas_sprites["enemigos"].update()
       
             
    
@@ -90,3 +119,5 @@ class Level1State:
                         continue
          self.listas_sprites["all_sprites"].draw(surface)
          #self.listas_sprites["mario"].draw(surface)
+         for enemigo in self.listas_sprites["enemigos"]:
+            surface.blit(enemigo.image, (enemigo.rect.x - self.scroll_x, enemigo.rect.y))
