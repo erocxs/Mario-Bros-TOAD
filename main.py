@@ -1,7 +1,7 @@
 from mario_game import Game   
 from arcade_machine_sdk import GameMeta
 import pygame
-
+ 
 if not pygame.get_init():
     pygame.init()
 

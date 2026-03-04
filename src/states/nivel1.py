@@ -3,7 +3,7 @@ from pathlib import Path
 from src.utils.constantsmario import *
 from src.components.player import Mario
 from src.components.enemies import Goomba
-
+from src.utils.helpers import *
 
 class Level1State:
     def __init__(self, hud_reference=None):
@@ -18,6 +18,7 @@ class Level1State:
         self.COLUMNAS = 212
         self.offset_y = 0 
         self.INI_POS_MARIO = (11, 13)
+        self.vidas = 4
 
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
         self.BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -46,6 +47,8 @@ class Level1State:
         self.TILES_SOLIDOS = [14, 15, 16, 21, 22, 27, 28, 40, 41]
         self.END_WORLD_SCROLL = [2985]
         self.GRAVEDAD = 1.0
+        # Lista de colisionadores-invisibles:
+        self.lista_triggers = []
         self.instanciar_objetos()
         self.path_musica = self.ASSETS_DIR / "music" / "musica-mario-bros.mp3"
 
@@ -77,6 +80,8 @@ class Level1State:
             # self.listas_sprites["all_sprites"].add(goomba)
             self.listas_sprites["enemigos"].add(goomba)
         
+        self.lista_triggers = ColisionadoresInvisibles(self, self.nivel)
+        
         
         
         
@@ -84,7 +89,8 @@ class Level1State:
        
         self.listas_sprites["all_sprites"].update()
         self.listas_sprites["enemigos"].update()
-      
+    
+   
             
    
 

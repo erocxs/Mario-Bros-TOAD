@@ -50,8 +50,9 @@ class Mario(pygame.sprite.Sprite):
         self.GRAVEDAD = self.game.GRAVEDAD
         self.en_suelo = False
         self.saltando = False
-        self.POTENCIA_SALTO = -19
+        self.POTENCIA_SALTO = -18
         self.POT_EXTRA = 1.75 
+        
         # Velocidad de las animaciones:
         self.ultimo_update = pygame.time.get_ticks()
         self.VEL_FRAMES_ANIMA = 90

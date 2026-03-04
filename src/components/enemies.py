@@ -1,6 +1,6 @@
 import pygame
 from src.utils.constantsmario import *
-
+from src.utils.helpers import *
 
 
 class Goomba(pygame.sprite.Sprite):
@@ -15,6 +15,7 @@ class Goomba(pygame.sprite.Sprite):
         self.spritesheet_img_rect = self.game.obtener_grafico("goomba-ssheet.png")
         self.image = self.spritesheet_img_rect[0]
         self.rect = self.spritesheet_img_rect[1]
+        self.aplastado = False
 
         self.ancho_ssheet = self.image.get_width()
         self.alto_ssheet = self.image.get_height()
@@ -49,6 +50,10 @@ class Goomba(pygame.sprite.Sprite):
         # Velocidad de las animaciones:
         self.ultimo_update = pygame.time.get_ticks()
         self.VEL_ANIMACION = 270
+        # cuanto dura la animacion despues aplastado:
+        self.ultimo_update_aplastado = pygame.time.get_ticks()
+        self.DELAY_APLASTADO_DIE = 500
+
     
     
     
@@ -59,10 +64,52 @@ class Goomba(pygame.sprite.Sprite):
 
         self.movimiento()
         manejar_colisiones_obstaculos(self, self.DIRECC_HORIZONTAL)
-       
+        self.manejar_colision_mario_aplastar()
+        self.manejar_colisiones_invisibles()
+    
+    def manejar_colisiones_invisibles(self):
+        for col_inv in self.game.lista_triggers.TRIGGERS:
+            if self.rect.colliderect(col_inv):
+                self.vel_x *= -1  
+    
+    
+    def manejar_colision_mario_aplastar(self):
+        """Deteccion de colision Goomba vs Mario, con opcion de aplastar a Goomba"""
+        # if self.game.CHEAT_ESTRELLA:
+        #     return
+        
+        mario = list(self.game.listas_sprites["mario"])[0]
+
+        # Ajustamos solo el rect del Goomba al scroll
+        goomba_rect = self.rect.copy()
+        goomba_rect.x -= self.game.scroll_x  # OJO: es -= porque Goomba se desplaza con el fondo
+
+        if not self.aplastado and mario.rect.colliderect(goomba_rect):
+            # Mario aplasta al Goomba
+            if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 3 and abs(mario.rect.centerx - (self.rect.x - self.game.scroll_x + self.TX // 2)) < self.TX // 3:
+
+               
+                self.aplastado = True
+                self.ultimo_update_aplastado = pygame.time.get_ticks()
+                self.vel_x = 0
+                mario.vel_y = mario.POTENCIA_SALTO
+                
+        else:
+                 self.game.vidas = 99
+              
+            
         
     
     def actualizar_animacion(self):
+        if self.aplastado:
+            self.image = self.lista_imagenes[2]
+
+            ahora = pygame.time.get_ticks()
+
+            if ahora - self.ultimo_update_aplastado > self.DELAY_APLASTADO_DIE:
+                self.kill()
+            
+            return
        
         ahora = pygame.time.get_ticks()
 
