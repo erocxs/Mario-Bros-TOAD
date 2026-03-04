@@ -260,7 +260,7 @@ def manejar_colisiones_obstaculos(context, direccion):
 
                 # Seleccionamos SOLO los 'tiles SOLIDOS':
                 if tile_id in context.game.TILES_SOLIDOS:
-                    tile_rect = pygame.Rect(col * context.TX, (fila * context.TX)+ context.game.offset_y, context.TX, context.TX) 
+                    tile_rect = pygame.Rect(col * context.TX, (fila * context.TY)+ context.game.offset_y, context.TX, context.TY) 
                     if context.rect.colliderect(tile_rect):
                         if direccion == context.DIRECC_HORIZONTAL:
                             if context.vel_x > 0:  # Va a la derecha

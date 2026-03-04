@@ -7,7 +7,7 @@ if not pygame.get_init():
 
 metadata = (GameMeta()
             .with_title("Super Mario Bros")
-            .with_description("Juego de prueba")
+            .with_description("Juego de p rueba")
             .with_release_date("10/02/2026")
             .with_group_number(8)
             .add_tag("Plataforma")
