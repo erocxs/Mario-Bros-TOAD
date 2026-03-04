@@ -77,9 +77,8 @@ class Mario(pygame.sprite.Sprite):
         pass
         
     def mover(self):
-        # --- SECUENCIA FINAL (META) ---
+         # --- SECUENCIA FINAL (META) ---
         if self.secuencia_final:
-            # Calculamos el suelo sumando el offset_y del nivel
             limite_suelo = (13 * self.TY) + self.game.offset_y
 
             # Paso A: Bajando por el mástil
@@ -87,34 +86,38 @@ class Mario(pygame.sprite.Sprite):
                 if self.rect.bottom < limite_suelo:
                     self.rect.y += 4
                     self.acc = 0
-                    return # <--- IMPORTANTE: Salir aquí para que no aplique gravedad normal
+                    return 
                 else:
                     self.rect.bottom = limite_suelo
                     self.en_suelo_final = True
-                    self.saltando = False
+                    self.saltando = False # IMPORTANTE: Apagamos el salto aquí
                     self.vel_y = 0
-                    return # <--- Salir
-
-            # Paso B: Caminata al castillo
+                    return
+                
+                # Paso B: Caminata al castillo
             else:
                 bandera = self.game.bandera_obj 
-                if bandera.rect.y < (12 * self.TY): # Esperar a la bandera
+
+                # Esperar a que la bandera llegue abajo (fila 12 aprox)
+                if bandera.rect.y < (12 * self.TY): 
                     self.acc = 0
                     return 
 
+                # Si ya bajó, caminamos hacia la derecha
                 self.acc = 2 
                 self.flip = False 
                 self.rect.x += self.acc 
-                
+
                 pos_mundo = self.rect.x + self.game.game.scroll_x
                 if pos_mundo >= (204 * self.TX): 
                     self.acc = 0 
                     self.rect.x = (204 * self.TX) - self.game.game.scroll_x
                     self.game.iniciar_fundido = True 
-                return # <--- Salir
+                return
 
-        # --- MOVIMIENTO NORMAL 
+        # --- MOVIMIENTO NORMAL (Solo si no es secuencia_final) ---
         self.aplicar_gravedad()
+        # ... resto de tu código (teclas, etc.)
         teclas = pygame.key.get_pressed()
 
         if teclas[pygame.K_LEFT]:
