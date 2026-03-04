@@ -61,6 +61,39 @@ class Mario(pygame.sprite.Sprite):
         self.mover() 
         self.animacion()
         self.chequear_muerte()
+        # --- COLOCAR DENTRO DE LA CLASE MARIO ---
+
+def activar_invencibilidad(self, duracion=12.0):
+    self.invencible = True
+    self.timer_estrella = duracion
+    self.timer_parpadeo = 0
+    self.colores = [(255, 255, 255), (255, 200, 0), (255, 50, 50), (100, 100, 255)]
+    self.color_actual = 0
+
+def update_invencibilidad(self, dt):
+    if self.invencible:
+        self.timer_estrella -= dt
+        self.timer_parpadeo += dt
+        
+        # Cambiar color visual cada 0.08 segundos para efecto frenético
+        if self.timer_parpadeo >= 0.08:
+            self.color_actual = (self.color_actual + 1) % len(self.colores)
+            self.timer_parpadeo = 0
+            
+        if self.timer_estrella <= 0:
+            self.invencible = False
+            self.perdio_invencibilidad_este_frame = True
+
+def draw_invencible(self, surface):
+    if self.invencible:
+        # Crea un duplicado para no arruinar el sprite original
+        sprite_brillante = self.image.copy()
+        color = self.colores[self.color_actual]
+        # Aplica el color sobre el sprite
+        sprite_brillante.fill(color, special_flags=pygame.BLEND_RGB_ADD)
+        surface.blit(sprite_brillante, self.rect)
+    else:
+        surface.blit(self.image, self.rect)
         
     def chequear_muerte(self):
         if self.rect.y > 800: 
