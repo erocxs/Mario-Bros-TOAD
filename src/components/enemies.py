@@ -39,7 +39,7 @@ class Goomba(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x * self.TX
         self.rect.y = y * self.TY
-        self.vel_x = -2
+        self.vel_x = -1
         self.vel_y = 0
         # Activo / Parado:
         self.activo = False
