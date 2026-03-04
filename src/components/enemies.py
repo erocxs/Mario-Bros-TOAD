@@ -82,11 +82,11 @@ class Goomba(pygame.sprite.Sprite):
 
         # Ajustamos solo el rect del Goomba al scroll
         goomba_rect = self.rect.copy()
-        goomba_rect.x -= self.game.scroll_x  # OJO: es -= porque Goomba se desplaza con el fondo
+        goomba_rect.x -= self.game.game.scroll_x  # OJO: es -= porque Goomba se desplaza con el fondo
 
         if not self.aplastado and mario.rect.colliderect(goomba_rect):
             # Mario aplasta al Goomba
-            if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 3 and abs(mario.rect.centerx - (self.rect.x - self.game.scroll_x + self.TX // 2)) < self.TX // 3:
+            if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 3 and abs(mario.rect.centerx - (self.rect.x - self.game.game.scroll_x + self.TX // 2)) < self.TX // 3:
 
                
                 self.aplastado = True
@@ -94,8 +94,8 @@ class Goomba(pygame.sprite.Sprite):
                 self.vel_x = 0
                 mario.vel_y = mario.POTENCIA_SALTO
                 
-        else:
-                 self.game.vidas = 99
+            else:
+                 self.game.quitar_vida()
               
             
         
@@ -137,4 +137,4 @@ class Goomba(pygame.sprite.Sprite):
     
     
     def get_pos_x_mario(self):
-        return self.game.scroll_x + self.game.INI_POS_MARIO[0] * self.TX
+        return self.game.game.scroll_x + self.game.INI_POS_MARIO[0] * self.TX
