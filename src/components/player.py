@@ -1,5 +1,7 @@
 import pygame
 from src.utils.constantsmario import *
+from src.components.moneda import moneda
+from pathlib import Path
 
 
 class Mario(pygame.sprite.Sprite):
@@ -106,7 +108,7 @@ class Mario(pygame.sprite.Sprite):
         
         if teclas[pygame.K_SPACE]:
             self.saltar()
-        
+            
         self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
 
         # Mover scroll (mario no se mueve realmente):
@@ -142,7 +144,7 @@ class Mario(pygame.sprite.Sprite):
             self.vel_y = self.POTENCIA_SALTO - abs(self.acc_acum / self.POT_EXTRA)
             self.en_suelo = False
             self.saltando = True
-            #self.game.sonidos.reproducir("salto")
+            self.game.sonidos.reproducir("jumpbros.ogg")
     
             
             
@@ -182,7 +184,7 @@ class Mario(pygame.sprite.Sprite):
                         (fila * self.TY) + self.game.offset_y, 
                         self.TX, self.TY)
                     if mario_rect.colliderect(tile_rect):
-                        self.resolver_colision(tile_rect, hor_ver)
+                        self.resolver_colision(tile_rect, hor_ver,tile_id, index)
     
 
     
@@ -190,7 +192,7 @@ class Mario(pygame.sprite.Sprite):
 
 
 
-    def resolver_colision(self, tile_rect, hor_ver):
+    def resolver_colision(self, tile_rect, hor_ver, tile_id, index):
         # Acciones dependiendo de donde colisionemos (VERTICAL)
         if hor_ver == self.DIRECC_VERTICAL:
             if self.vel_y > 0:  # cayendo
@@ -208,6 +210,13 @@ class Mario(pygame.sprite.Sprite):
                 
                     self.vel_y = 0
                     self.rect.top = tile_rect.bottom
+                    
+                    if tile_id == 14:
+                        # if index == 1929 or index == 1986 or index == 1169:
+                        #     if not index in moneda.ARRAY_DESACTIVADAS:
+                        moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                        moneda_y = tile_rect.top - self.TY
+                        self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
        
         elif hor_ver == self.DIRECC_HORIZONTAL:
             if self.acc > 0:  # derecha

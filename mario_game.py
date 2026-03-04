@@ -11,6 +11,7 @@ class Game(GameBase):
         self.menu = None
         self.nivel1 = None
         self.vidas = 5
+        self.monedas = 0
         self.estado_actual = "MENU"
         self.timer_muerte = 0
         self.scroll_x = 0

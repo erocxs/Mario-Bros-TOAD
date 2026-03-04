@@ -3,7 +3,10 @@ from pathlib import Path
 from src.utils.constantsmario import *
 from src.components.player import Mario
 from src.components.enemies import Goomba
+from src.components.moneda import moneda
 from src.utils.helpers import *
+from src.utils.sonidos import Sonidos
+from src.components.hud import *
 
 class Level1State:
     def __init__(self, game_reference, hud_reference=None):
@@ -19,6 +22,8 @@ class Level1State:
         self.COLUMNAS = 212
         self.offset_y = 0 
         self.INI_POS_MARIO = (11, 13)
+        self.sonidos = Sonidos()
+        self.hud = HUD()
        
 
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
@@ -31,7 +36,7 @@ class Level1State:
             "enemigos": pygame.sprite.Group(),
             "bandera": pygame.sprite.Group(),
             "escenario": pygame.sprite.Group(),
-            "textos": pygame.sprite.Group(),
+           
     }
         self.pos_goombas = [
             (24, 13),
@@ -57,7 +62,7 @@ class Level1State:
     def obtener_grafico(self, nombreArchivo):
         # Ajustado para usar la ruta dinámica
         IMAGE_PATH = self.ASSETS_DIR / "img" / nombreArchivo
-        img = pygame.image.load(str(IMAGE_PATH)).convert_alpha()
+        img = pygame.image.load(str(IMAGE_PATH))
         image = pygame.transform.scale(img, (img.get_width() * self.ESCALA, img.get_height()* self.ESCALA))
         image.set_colorkey((255, 255, 255))
         rect = image.get_rect()
@@ -74,7 +79,7 @@ class Level1State:
         self.mario = Mario(self, 11, 13)
         
         # Añadirlo a los grupos limpios
-        self.listas_sprites["all_sprites"].add(self.mario)
+        #self.listas_sprites["all_sprites"].add(self.mario)
         self.listas_sprites["mario"].add(self.mario)
 
         # Re-crear enemigos
@@ -84,14 +89,18 @@ class Level1State:
         
         self.lista_triggers = ColisionadoresInvisibles(self, self.nivel)
         
+    def instanciar_moneda(self, index, x, y, multiplyByTile):
+        Moneda = moneda(self, index, x, y, multiplyByTile)
+        self.listas_sprites["all_sprites"].add(Moneda)
+        
         
         
         
     def update(self, dt):
+         for lista in self.listas_sprites.values():
+            lista.update()
        
-        self.listas_sprites["all_sprites"].update()
-        self.listas_sprites["enemigos"].update()
-
+     
     
    
 
@@ -134,7 +143,10 @@ class Level1State:
                 else:
                 # Si el bloque es None (como el cielo), no hacemos nada y pasamos al siguiente
                         continue
-         self.listas_sprites["all_sprites"].draw(surface)
-         #self.listas_sprites["mario"].draw(surface)
+         for sprite in self.listas_sprites["all_sprites"]:
+            surface.blit(sprite.image, (sprite.rect.x - self.game.scroll_x, sprite.rect.y+self.offset_y ))
+         
+         self.listas_sprites["mario"].draw(surface)
+          
          for enemigo in self.listas_sprites["enemigos"]:
             surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))

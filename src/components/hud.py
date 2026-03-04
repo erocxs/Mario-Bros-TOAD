@@ -1,7 +1,7 @@
 import pygame
 from arcade_machine_sdk import BASE_WIDTH
 from pathlib import Path
-from src.states.nivel1 import Level1State
+
 
 class HUD:
     def __init__(self):
@@ -41,6 +41,9 @@ class HUD:
             score_title = self.font.render("MARIO", True, self.color)
             score_num = self.font.render(str(self.score).zfill(6), True, self.color)
             
+            coin_title = self.font.render("coin", True, self.color)
+            coin_num = self.font.render(str(self.coins).zfill(2), True, self.color)
+            
             world_title = self.font.render("WORLD", True, self.color)
             world_val = self.font.render(str(self.world_text), True, self.color)
             
@@ -60,7 +63,8 @@ class HUD:
             # Dibujamos MARIO (Izquierda)
             surface.blit(score_title, (50, 20))
             surface.blit(score_num, (50, 20 + line_spacing))
-            
+            surface.blit(coin_title, (200, 20))
+            surface.blit(coin_num, (200, 20 + line_spacing))
             # Dibujamos WORLD (Centro)
             # Centramos respecto a BASE_WIDTH del SDK
             surface.blit(world_title, (BASE_WIDTH // 2 - 50, 20))

@@ -86,14 +86,14 @@ class Goomba(pygame.sprite.Sprite):
 
         if not self.aplastado and mario.rect.colliderect(goomba_rect):
             # Mario aplasta al Goomba
-            if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 3 and abs(mario.rect.centerx - (self.rect.x - self.game.game.scroll_x + self.TX // 2)) < self.TX // 3:
+            if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 2 and abs(mario.rect.centerx - (self.rect.x - self.game.game.scroll_x + self.TX // 2)) < self.TX //3:
 
                
                 self.aplastado = True
                 self.ultimo_update_aplastado = pygame.time.get_ticks()
                 self.vel_x = 0
                 mario.vel_y = mario.POTENCIA_SALTO
-                
+                self.game.sonidos.reproducir("squit.mp3")
             else:
                  self.game.quitar_vida()
               
