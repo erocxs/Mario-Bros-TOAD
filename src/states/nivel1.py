@@ -4,6 +4,7 @@ from src.utils.constantsmario import *
 from src.components.player import Mario
 from src.components.enemies import Goomba
 from src.utils.helpers import *
+from src.components.interactive import Flag
 
 class Level1State:
     def __init__(self, game_reference, hud_reference=None):
@@ -19,6 +20,8 @@ class Level1State:
         self.COLUMNAS = 212
         self.offset_y = 0 
         self.INI_POS_MARIO = (11, 13)
+        self.iniciar_fundido = False
+        self.fade_alpha=0
        
 
         # 1. Definimos la ruta a assets subiendo dos niveles desde src/states
@@ -65,14 +68,16 @@ class Level1State:
 
 
     def instanciar_objetos(self):
-        # VACIAR TODO: Si no haces esto, los Marios se acumulan
-        self.listas_sprites["all_sprites"].empty()
-        self.listas_sprites["mario"].empty()
-        self.listas_sprites["enemigos"].empty()
-
-        # Crear el nuevo Mario
-        self.mario = Mario(self, 11, 13)
+        # --- ¡ESTA ES LA LÍNEA QUE FALTA! ---
+        self.game.scroll_x = 0  # Resetea la cámara al inicio del nivel
         
+        # Vaciar grupos existentes
+        for grupo in self.listas_sprites.values():
+            grupo.empty()
+
+        # Crear el nuevo Mario usando la posición de inicio (INI_POS_MARIO)
+        # Cambié el (11, 13) por self.INI_POS_MARIO para que sea consistente
+        self.mario = Mario(self, self.INI_POS_MARIO[0], self.INI_POS_MARIO[1])
         # Añadirlo a los grupos limpios
         self.listas_sprites["all_sprites"].add(self.mario)
         self.listas_sprites["mario"].add(self.mario)
@@ -84,57 +89,86 @@ class Level1State:
         
         self.lista_triggers = ColisionadoresInvisibles(self, self.nivel)
         
+        self.bandera_obj = Flag(self, 197, 4) 
+        self.listas_sprites["bandera"].add(self.bandera_obj)
+        
         
         
         
     def update(self, dt):
-       
+        # Actualizar grupos
         self.listas_sprites["all_sprites"].update()
         self.listas_sprites["enemigos"].update()
+        self.listas_sprites["bandera"].update() 
 
-    
-   
+        # --- LÓGICA DE META ---
+        if not self.mario.secuencia_final:
+            mario_mundo_x = self.mario.rect.x + self.game.scroll_x
+            
+            for bandera in self.listas_sprites["bandera"]:
+                if mario_mundo_x >= bandera.rect.x:
+                    self.mario.secuencia_final = True
+                    bandera.bajando = True
+                    self.mario.acc = 0
+                    # Alineamos a Mario con el mástil
+                    self.mario.rect.x = bandera.rect.x - self.game.scroll_x
+                    self.game.cambiar_musica("gameover_mario.mp3", 0)
+                    break
+
+        # --- LÓGICA DE FADE OUT (FUNDIDO) ---
+        if hasattr(self, "iniciar_fundido") and self.iniciar_fundido:
+            if not hasattr(self, "fade_alpha"): self.fade_alpha = 0
+            
+            if self.fade_alpha < 255:
+                self.fade_alpha += 4 # Velocidad de oscurecimiento
+            else:
+                self.game.cambiar_musica("intro-mario-snes.mp3")
+                self.iniciar_fundido = False
+                self.fade_alpha = 0
+                self.game.estado_actual = "MENU"
 
 
     def quitar_vida(self):
-        # Esta función llama a la del juego principal (mario_game.py)
-        # Asegúrate de que en el __init__ guardaste la referencia como self.game
-        if hasattr(self, 'game'):
-            self.game.quitar_vida() 
-        else:
-            print("Error: No tengo la referencia al juego principal")
-            
-
-            
+            # Esta función llama a la del juego principal (mario_game.py)
+            # Asegúrate de que en el __init__ guardaste la referencia como self.game
+            if hasattr(self, 'game'):
+                self.game.quitar_vida() 
+            else:
+                print("Error: No tengo la referencia al juego principal")
+                
+                
     def draw(self, surface, Nivel=NIVEL_1):
-         surface.fill((100, 170, 180))
-         
-         TILE_X=32 #ancho del bloque
-         TILE_Y=32 #alto del bloque 
-    # Dividimos el ancho de la pantalla (1024) entre el ancho del bloque (32).
-    # Esto evita procesar las 212 columnas si solo vemos 32.
-         tiles_on_screen_x = surface.get_width() // self.TILE_X
-         start_tile_x = int(self.game.scroll_x // self.TILE_X)
-         self.offset_y = surface.get_height() - (self.FILAS * self.TILE_Y)
-         
-         for y in range(self.FILAS):
-        # Solo recorremos las columnas que caben en la pantalla (+1 para el borde derecho).
-            for x in range(tiles_on_screen_x + 2):  
+        surface.fill((100, 170, 180))
+        
+        tiles_on_screen_x = surface.get_width() // self.TILE_X
+        start_tile_x = int(self.game.scroll_x // self.TILE_X)
+        self.offset_y = surface.get_height() - (self.FILAS * self.TILE_Y)
+        
+        # 1. Dibujar Escenario
+        for y in range(self.FILAS):
+            for x in range(tiles_on_screen_x + 2):
                 tile_index = y * self.COLUMNAS + (start_tile_x + x)
-            # Verificación de seguridad: No intentar leer fuera de la lista.
-                if tile_index >= len(Nivel):
-                    continue  
-            # Obtenemos el número del bloque (ID)
-                tile = Nivel[tile_index]
-            # Solo dibujamos si el ID no es "None" (como el cielo).
-                if self.num[tile] is not None:
-                     pantalla_x = x * self.TILE_X - (self.game.scroll_x % self.TILE_X)
-                     pantalla_y = (y * self.TILE_Y) + self.offset_y
-                     surface.blit(self.num[tile][0], (pantalla_x, pantalla_y))
-                else:
-                # Si el bloque es None (como el cielo), no hacemos nada y pasamos al siguiente
-                        continue
-         self.listas_sprites["all_sprites"].draw(surface)
-         #self.listas_sprites["mario"].draw(surface)
-         for enemigo in self.listas_sprites["enemigos"]:
+                if tile_index < len(Nivel):
+                    tile = Nivel[tile_index]
+                    if self.num[tile] is not None:
+                        pantalla_x = x * self.TILE_X - (self.game.scroll_x % self.TILE_X)
+                        pantalla_y = (y * self.TILE_Y) + self.offset_y
+                        surface.blit(self.num[tile][0], (pantalla_x, pantalla_y))
+
+        # 2. Dibujar Bandera
+        for bandera in self.listas_sprites["bandera"]:
+            bandera.draw(surface)
+
+        # 3. Dibujar Mario (Usando su rect.x directo para que se mueva por la pantalla)
+        surface.blit(self.mario.image, (self.mario.rect.x, self.mario.rect.y))
+
+        # 4. Dibujar Enemigos
+        for enemigo in self.listas_sprites["enemigos"]:
             surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))
+
+        # 5. Dibujar Capa de Fundido (Fade Out)
+        if hasattr(self, "fade_alpha") and self.fade_alpha > 0:
+            fade_surf = pygame.Surface((surface.get_width(), surface.get_height()))
+            fade_surf.fill((0, 0, 0))
+            fade_surf.set_alpha(self.fade_alpha)
+            surface.blit(fade_surf, (0, 0))

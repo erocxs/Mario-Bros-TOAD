@@ -9,6 +9,7 @@ class Mario(pygame.sprite.Sprite):
 
         self.TX = TILE_X
         self.TY = TILE_Y
+        self.estado_finalizado = False
 
         # Sprite sheet
         self.spritesheet_img_rect = self.game.obtener_grafico("mario-ss1.png") #guarda un tuple que tiene la imagen del mario y la hitbox
@@ -52,10 +53,12 @@ class Mario(pygame.sprite.Sprite):
         self.saltando = False
         self.POTENCIA_SALTO = -18
         self.POT_EXTRA = 1.75 
+        self.secuencia_final = False
         
         # Velocidad de las animaciones:
         self.ultimo_update = pygame.time.get_ticks()
         self.VEL_FRAMES_ANIMA = 90
+        self.ganado = False
         
     def update(self):
         self.mover() 
@@ -72,45 +75,63 @@ class Mario(pygame.sprite.Sprite):
         pass
         
     def mover(self):
-        """Controles-Mario y movimiento (vertical y horizontal)"""
+        # --- SECUENCIA FINAL (META) ---
+        if self.secuencia_final:
+            limite_suelo = (13 * self.TY) + self.game.offset_y
 
+            # Paso A: Bajando por el mástil
+            if not hasattr(self, "en_suelo_final"):
+                if self.rect.bottom < limite_suelo:
+                    self.rect.y += 4
+                    self.acc = 0
+                    return 
+                else:
+                    self.rect.bottom = limite_suelo
+                    self.en_suelo_final = True
+                    self.saltando = False # IMPORTANTE: Apagamos el salto aquí
+                    self.vel_y = 0
+                    return
+
+            # Paso B: Caminata al castillo
+            else:
+                bandera = self.game.bandera_obj 
+                
+                # Esperar a que la bandera llegue abajo (fila 12 aprox)
+                if bandera.rect.y < (12 * self.TY): 
+                    self.acc = 0
+                    return 
+
+                # Si ya bajó, caminamos hacia la derecha
+                self.acc = 2 
+                self.flip = False 
+                self.rect.x += self.acc 
+                
+                pos_mundo = self.rect.x + self.game.game.scroll_x
+                if pos_mundo >= (204 * self.TX): 
+                    self.acc = 0 
+                    self.rect.x = (204 * self.TX) - self.game.game.scroll_x
+                    self.game.iniciar_fundido = True 
+                return
+
+        # --- MOVIMIENTO NORMAL ---
         self.aplicar_gravedad()
-
         teclas = pygame.key.get_pressed()
 
         if teclas[pygame.K_LEFT]:
-            
-            self.gestionar_aceleracion(self.flip)
+            self.gestionar_aceleracion(True)
             self.flip = True
-        
         elif teclas[pygame.K_RIGHT]:
-            
-            self.gestionar_aceleracion(self.flip)
+            self.gestionar_aceleracion(False)
             self.flip = False
-        
         else:
-            if self.acc > 0:
-                self.acc -= self.DECELERACION
-                self.acc = 0 if self.acc < 0 else self.acc
-
-                self.acc_acum -= self.DECELERACION
-                self.acc_acum = 0 if self.acc_acum < 0 else self.acc_acum
-
-            else:
-                self.acc += self.DECELERACION
-                self.acc = 0 if self.acc > 0 else self.acc
-
-                self.acc_acum += self.DECELERACION
-                self.acc_acum = 0 if self.acc_acum > 0 else self.acc_acum
-                
+            if self.acc > 0: self.acc = max(0, self.acc - self.DECELERACION)
+            elif self.acc < 0: self.acc = min(0, self.acc + self.DECELERACION)
         
         if teclas[pygame.K_SPACE]:
             self.saltar()
-        
-        self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
 
-        # Mover scroll (mario no se mueve realmente):
         self.game.game.scroll_x += self.acc
+        self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
         self.limites_mundo()
         
     def gestionar_aceleracion(self, flip):
@@ -219,31 +240,40 @@ class Mario(pygame.sprite.Sprite):
                     self.acc = 0
             
     def animacion(self):
-       
-       # ANIMACION SALTANDO:
-        if self.saltando:
+        # 1. PRIORIDAD: Bajando por el mástil (Aún no toca el suelo)
+        if self.secuencia_final and not hasattr(self, "en_suelo_final"):
             self.image = self.lista_imagenes[5]
             self.image = pygame.transform.flip(self.image, self.flip, False)
             return
+
+        # 2. ANIMACION SALTANDO
+        # Agregamos "and not hasattr(self, 'en_suelo_final')" para que, si ya aterrizó 
+        # en la meta, deje de mostrar el frame de salto y pase a caminar.
+        if self.saltando and not hasattr(self, "en_suelo_final"):
+            self.image = self.lista_imagenes[5]
+            self.image = pygame.transform.flip(self.image, self.flip, False)
+            return
+
+        # 3. CICLO DE CAMINATA Y PARADO
         ahora = pygame.time.get_ticks()
 
+        # Manejo del tiempo para cambiar el índice del frame
         if ahora - self.ultimo_update > self.VEL_FRAMES_ANIMA:
             self.ultimo_update = ahora
             self.anim_index += 1
-
             if self.anim_index >= self.rango_animacion[1]:
                 self.anim_index = self.rango_animacion[0]
-            
-            # Si va muy lento (cerca de 0), entonces 'animacion parado'[0]:
-            if -0.01 <= self.acc <= 0.01:
-                self.image = self.lista_imagenes[0]
-                self.image = pygame.transform.flip(self.image, self.flip, False)
-            else:
-                # Si no, cambia la secuencia de animacion de forma normal:
-                self.image = self.lista_imagenes[self.anim_index]
-                self.image = pygame.transform.flip(self.image, self.flip, False)
-                
         
+        # DECISIÓN DE QUÉ IMAGEN MOSTRAR
+        # Si la aceleración es casi cero, mostramos pose de parado (Frame 0)
+        if -0.1 < self.acc < 0.1:
+            self.image = self.lista_imagenes[0]
+        else:
+            # Si hay movimiento (como el self.acc = 2 de la meta), animamos caminando
+            self.image = self.lista_imagenes[self.anim_index]
+
+        # Aplicamos el flip horizontal siempre al final de la lógica de suelo
+        self.image = pygame.transform.flip(self.image, self.flip, False)
                 
                 
     def limites_mundo(self):
@@ -252,3 +282,13 @@ class Mario(pygame.sprite.Sprite):
             self.game.game.scroll_x = 0 
         elif self.game.game.scroll_x >= END_WORLD:
             self.game.game.scroll_x = END_WORLD
+            
+    def aplicar_gravedad_final(self):
+        # Mario baja por el mástil
+        limite_suelo = (13 * self.TY) + self.game.offset_y
+        if self.rect.bottom < limite_suelo:
+            self.rect.y += 3  # Velocidad de descenso de Mario
+            self.vel_y = 0 
+        else:
+            self.rect.bottom = limite_suelo
+            # Aquí podrías disparar el cambio de nivel o música de victoria
