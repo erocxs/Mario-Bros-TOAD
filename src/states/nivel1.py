@@ -138,3 +138,9 @@ class Level1State:
          #self.listas_sprites["mario"].draw(surface)
          for enemigo in self.listas_sprites["enemigos"]:
             surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))
+             # Dentro del loop de colisiones de Level1State:
+estrellas_tocadas = pygame.sprite.spritecollide(self.mario, self.grupo_estrellas, True)
+
+for estrella in estrellas_tocadas:
+    self.mario.activar_invencibilidad(12.0)
+    self.game.cambiar_musica("starman.mp3")
