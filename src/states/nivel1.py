@@ -179,8 +179,6 @@ class Level1State:
                         continue
         for sprite in self.listas_sprites["all_sprites"]:
             surface.blit(sprite.image, (sprite.rect.x - self.game.scroll_x, sprite.rect.y+self.offset_y ))
-         
-        self.listas_sprites["mario"].draw(surface)
           
         for enemigo in self.listas_sprites["enemigos"]:
             surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))
