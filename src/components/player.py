@@ -78,7 +78,7 @@ class Mario(pygame.sprite.Sprite):
         pass
         
     def mover(self):
-        # --- SECUENCIA FINAL (META) ---
+         # --- SECUENCIA FINAL (META) ---
         if self.secuencia_final:
             limite_suelo = (13 * self.TY) + self.game.offset_y
 
@@ -94,11 +94,11 @@ class Mario(pygame.sprite.Sprite):
                     self.saltando = False # IMPORTANTE: Apagamos el salto aquí
                     self.vel_y = 0
                     return
-
-            # Paso B: Caminata al castillo
+                
+                # Paso B: Caminata al castillo
             else:
                 bandera = self.game.bandera_obj 
-                
+
                 # Esperar a que la bandera llegue abajo (fila 12 aprox)
                 if bandera.rect.y < (12 * self.TY): 
                     self.acc = 0
@@ -108,7 +108,7 @@ class Mario(pygame.sprite.Sprite):
                 self.acc = 2 
                 self.flip = False 
                 self.rect.x += self.acc 
-                
+
                 pos_mundo = self.rect.x + self.game.game.scroll_x
                 if pos_mundo >= (204 * self.TX): 
                     self.acc = 0 
@@ -116,8 +116,9 @@ class Mario(pygame.sprite.Sprite):
                     self.game.iniciar_fundido = True 
                 return
 
-        # --- MOVIMIENTO NORMAL ---
+        # --- MOVIMIENTO NORMAL (Solo si no es secuencia_final) ---
         self.aplicar_gravedad()
+        # ... resto de tu código (teclas, etc.)
         teclas = pygame.key.get_pressed()
 
         if teclas[pygame.K_LEFT]:
@@ -133,8 +134,7 @@ class Mario(pygame.sprite.Sprite):
         if teclas[pygame.K_SPACE]:
             self.saltar()
 
-            
-        self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
+        
 
 
 
@@ -213,11 +213,6 @@ class Mario(pygame.sprite.Sprite):
                     if mario_rect.colliderect(tile_rect):
                         self.resolver_colision(tile_rect, hor_ver,tile_id, index)
     
-
-    
-
-
-
 
     def resolver_colision(self, tile_rect, hor_ver, tile_id, index):
         # Acciones dependiendo de donde colisionemos (VERTICAL)

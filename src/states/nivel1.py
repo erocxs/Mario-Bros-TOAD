@@ -63,12 +63,26 @@ class Level1State:
         self.path_musica = self.ASSETS_DIR / "music" / "musica-mario-bros.mp3"
 
 
-    def obtener_grafico(self, nombreArchivo):
-        # Ajustado para usar la ruta dinámica
+    def obtener_grafico(self, nombreArchivo, colorkey=None):
         IMAGE_PATH = self.ASSETS_DIR / "img" / nombreArchivo
-        img = pygame.image.load(str(IMAGE_PATH))
-        image = pygame.transform.scale(img, (img.get_width() * self.ESCALA, img.get_height()* self.ESCALA))
-        image.set_colorkey((255, 255, 255))
+        
+        # Cargamos y preparamos para transparencia
+        img = pygame.image.load(str(IMAGE_PATH)).convert_alpha()
+        
+        # Escalado al tamaño del juego
+        nuevo_ancho = int(img.get_width() * self.ESCALA)
+        nuevo_alto = int(img.get_height() * self.ESCALA)
+        image = pygame.transform.scale(img, (nuevo_ancho, nuevo_alto))
+        
+        # SI LE PASAMOS UN COLOR ESPECÍFICO, LO QUITAMOS:
+        # Esto es lo que usaremos con la bandera.
+        if colorkey is not None:
+            # Ponemos ese color específico como transparente
+            image.set_colorkey(colorkey)
+        else:
+            # Por defecto, blanco o transparencia del archivo (como Mario)
+            image.set_colorkey((255, 255, 255)) 
+            
         rect = image.get_rect()
         return (image, rect)
 
@@ -87,7 +101,8 @@ class Level1State:
         # Añadirlo a los grupos limpios
         #self.listas_sprites["all_sprites"].add(self.mario)
         self.listas_sprites["mario"].add(self.mario)
-
+        self.bandera_obj = Flag(self, 197, 4) 
+        self.listas_sprites["bandera"].add(self.bandera_obj)
         # Re-crear enemigos
         for pos in self.pos_goombas:
             goomba = Goomba(self, pos[0], pos[1])
@@ -100,6 +115,7 @@ class Level1State:
         Moneda = moneda(self, index, x, y, multiplyByTile)
         self.listas_sprites["all_sprites"].add(Moneda)
 
+
         self.bandera_obj = Flag(self, 197, 4) 
         self.listas_sprites["bandera"].add(self.bandera_obj)
         
@@ -111,21 +127,16 @@ class Level1State:
         
         
         
+
         
     def update(self, dt):
-         for lista in self.listas_sprites.values():
+        for lista in self.listas_sprites.values():
             lista.update()
-       
-     
-        # Actualizar grupos
-         self.listas_sprites["all_sprites"].update()
-         self.listas_sprites["enemigos"].update()
-         self.listas_sprites["bandera"].update() 
 
         # --- LÓGICA DE META ---
-         if not self.mario.secuencia_final:
+        if not self.mario.secuencia_final:
             mario_mundo_x = self.mario.rect.x + self.game.scroll_x
-            
+
             for bandera in self.listas_sprites["bandera"]:
                 if mario_mundo_x >= bandera.rect.x:
                     self.mario.secuencia_final = True
@@ -137,9 +148,9 @@ class Level1State:
                     break
 
         # --- LÓGICA DE FADE OUT (FUNDIDO) ---
-         if hasattr(self, "iniciar_fundido") and self.iniciar_fundido:
+        if hasattr(self, "iniciar_fundido") and self.iniciar_fundido:
             if not hasattr(self, "fade_alpha"): self.fade_alpha = 0
-            
+
             if self.fade_alpha < 255:
                 self.fade_alpha += 4 # Velocidad de oscurecimiento
             else:
@@ -185,8 +196,6 @@ class Level1State:
                         continue
         for sprite in self.listas_sprites["all_sprites"]:
             surface.blit(sprite.image, (sprite.rect.x - self.game.scroll_x, sprite.rect.y+self.offset_y ))
-         
-        self.listas_sprites["mario"].draw(surface)
           
         for enemigo in self.listas_sprites["enemigos"]:
             surface.blit(enemigo.image, (enemigo.rect.x - self.game.scroll_x, enemigo.rect.y))
