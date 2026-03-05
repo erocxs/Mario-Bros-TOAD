@@ -39,7 +39,7 @@ class Goomba(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x * self.TX
         self.rect.y = y * self.TY
-        self.vel_x = -2
+        self.vel_x = -1
         self.vel_y = 0
         # Activo / Parado:
         self.activo = False
@@ -85,7 +85,7 @@ class Goomba(pygame.sprite.Sprite):
         goomba_rect.x -= self.game.game.scroll_x  # OJO: es -= porque Goomba se desplaza con el fondo
 
         if not self.aplastado and mario.rect.colliderect(goomba_rect):
-            # Mario aplasta al Goomb
+            # Mario aplasta al Goombas
 
              if mario.vel_y > 0 and mario.rect.bottom <= self.rect.top + self.TY // 3 and abs(mario.rect.centerx - (self.rect.x - self.game.game.scroll_x + self.TX // 2)) < self.TX // 1:
 

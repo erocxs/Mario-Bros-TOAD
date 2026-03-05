@@ -1,7 +1,8 @@
 import pygame
 from src.utils.constantsmario import *
 from src.components.moneda import moneda
-from pathlib import Path
+from src.components.hongo import hongo
+
 
 
 class Mario(pygame.sprite.Sprite):
@@ -238,11 +239,29 @@ class Mario(pygame.sprite.Sprite):
                     self.rect.top = tile_rect.bottom
                     
                     if tile_id == 14:
-                        # if index == 1929 or index == 1986 or index == 1169:
-                        #     if not index in moneda.ARRAY_DESACTIVADAS:
-                        moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
-                        moneda_y = tile_rect.top - self.TY
-                        self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
+                        if index == 1929 or index == 1986 or index == 1169:
+                            if not index in hongo.ARRAY_DESACTIVADAS:
+                                
+                                self.game.instanciar_hongo(index, tile_rect.left, tile_rect.top - self.TY, False)
+                        
+                        elif not index in moneda.ARRAY_DESACTIVADAS:
+                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                            moneda_y = tile_rect.top - self.TY
+                            self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
+                            
+                    
+                    elif tile_id == 15:
+                        if index == 2002:
+                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                            moneda_y = tile_rect.top - self.TY
+                            self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
+                        elif index == 2009:
+                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                            moneda_y = tile_rect.top - self.TY
+                            self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
+
+                            
+                        
        
         elif hor_ver == self.DIRECC_HORIZONTAL:
             if self.acc > 0:  # derecha

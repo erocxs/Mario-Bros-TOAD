@@ -8,6 +8,7 @@ from src.utils.helpers import *
 from src.utils.sonidos import Sonidos
 from src.components.hud import *
 from src.components.interactive import Flag
+from src.components.hongo import hongo
 
 class Level1State:
     def __init__(self, game_reference, hud_reference=None):
@@ -101,6 +102,11 @@ class Level1State:
 
         self.bandera_obj = Flag(self, 197, 4) 
         self.listas_sprites["bandera"].add(self.bandera_obj)
+        
+    def instanciar_hongo(self, index, x, y, multiplyByTile, extra=False):
+        fungus = hongo(self, index, x, y, multiplyByTile, extra=extra)
+        self.listas_sprites["all_sprites"].add(fungus)
+    
 
         
         

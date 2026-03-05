@@ -2,16 +2,11 @@ import pygame
 from pathlib import Path
 
 
-# ====================================================================================
-#   sonidos.py (modulo class Sonidos) ... Carga de archivos de la ruta: 'assets/audio'
-#
-# ------------------------------------------------------------------------------------
 class Sonidos:
     def __init__(self):
         self.BASE_DIR=Path(__file__).resolve().parent.parent.parent
         self.ASSETS_DIR = self.BASE_DIR / "assets"
-        # pygame.mixer.init()
-        # self.sonidos = self.cargar_sonidos()
+        
     
 
     
