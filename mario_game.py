@@ -117,7 +117,7 @@ class Game(GameBase):
         self.scroll_x = 0  # Reseteamos el scroll global del juego
         self.tiempo_restante = self.tiempo_inicial
         if self.hud:
-            self.hud.reset_timer()  # Reseteamos el timer del HUD
+            self.hud.reset()  # Reseteamos el timer del HUD
         
         if self.nivel1:
             # Importante: resetear las variables de control de meta en el nivel

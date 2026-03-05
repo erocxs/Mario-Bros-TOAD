@@ -190,6 +190,8 @@ NIVEL_1 = [
     40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40, 40
 ]
 
+NIVEL_1_ORIGINAL = NIVEL_1.copy()
+
 def biblioteca(self):
     return {
             1: None,
