@@ -73,6 +73,8 @@ class HUD:
             # Dibujamos TIME (Derecha)
             surface.blit(time_title, (BASE_WIDTH - 200, 20))
             surface.blit(time_val, (BASE_WIDTH - 190, 20 + line_spacing))
-    def reset_timer(self):
+    def reset(self):
         self.time = 400
         self.timer_event = 0
+        self.score = 0
+        self.coins = 0

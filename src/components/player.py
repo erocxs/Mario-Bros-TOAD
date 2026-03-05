@@ -82,6 +82,8 @@ class Mario(pygame.sprite.Sprite):
     def mover(self):
         if self.secuencia_final:
             limite_suelo = (13 * self.TY) + self.game.offset_y
+            
+            # Paso 1: Mario bajando por el mástil
             if not hasattr(self, "en_suelo_final"):
                 if self.rect.bottom < limite_suelo:
                     self.rect.y += 4
@@ -93,20 +95,32 @@ class Mario(pygame.sprite.Sprite):
                     self.saltando = False 
                     self.vel_y = 0
                     return
+            
+            # Paso 2: Mario ya en el suelo, espera a que la bandera termine de bajar
             else:
                 bandera = self.game.bandera_obj 
-                if bandera.rect.y < (12 * self.TY): 
+                
+                # CORRECCIÓN: Usamos bandera.bajando para saber si terminó. 
+                # Si tu objeto Flag pone self.bajando = False al llegar al suelo, esto es lo más limpio.
+                if bandera.bajando: 
                     self.acc = 0
                     return 
+
+                # Paso 3: Caminata al castillo
                 self.acc = 2 
                 self.flip = False 
                 self.rect.x += self.acc 
+                
+                # Calculamos posición en el mundo real
                 pos_mundo = self.rect.x + self.game.game.scroll_x
+                
                 if pos_mundo >= (204 * self.TX): 
                     self.acc = 0 
                     self.rect.x = (204 * self.TX) - self.game.game.scroll_x
                     self.game.iniciar_fundido = True 
                 return
+
+        # Movimiento norma
 
         self.aplicar_gravedad()
         teclas = pygame.key.get_pressed()

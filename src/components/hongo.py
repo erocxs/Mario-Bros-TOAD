@@ -126,7 +126,7 @@ class hongo(pygame.sprite.Sprite):
             
             self.game.hud.add_score(self.BONUS)
             try:
-                self.game.sonidos.reproducir("smb_powerup.wav")
+                self.game.sonidos.reproducir("power-up.mp3")
             except:
                 pass
             
