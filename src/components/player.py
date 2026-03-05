@@ -3,8 +3,6 @@ from src.utils.constantsmario import *
 from src.components.moneda import moneda
 from src.components.hongo import hongo
 
-
-
 class Mario(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
         super().__init__()
@@ -14,16 +12,15 @@ class Mario(pygame.sprite.Sprite):
         self.TY = TILE_Y
         self.estado_finalizado = False
 
-        # Sprite sheet
-        self.spritesheet_img_rect = self.game.obtener_grafico("mario-ss1.png") #guarda un tuple que tiene la imagen del mario y la hitbox
-        self.image = self.spritesheet_img_rect[0] #imagen
-        self.rect = self.spritesheet_img_rect[1] #hitbox de toda la imagen
+        # Sprite sheet (Usamos SOLO tu archivo original)
+        self.spritesheet_img_rect = self.game.obtener_grafico("mario-ss1.png") 
+        self.image = self.spritesheet_img_rect[0] 
+        self.rect = self.spritesheet_img_rect[1] 
         self.ancho_imagen = self.image.get_width()
         self.alto_imagen = self.image.get_height()
-        self.numero_sprites_ssheet = self.ancho_imagen // self.TX #calcula cuantos marios hay en la imagen, Si la imagen mide 480 y cada bloque (TX) mide 48, el resultado es 10.
+        self.numero_sprites_ssheet = self.ancho_imagen // self.TX 
         self.rango_animacion = (1, 4)
         
-        # Recorte de sprites y los almacenamos individualmente en una LISTA:
         self.anim_index = 0
         self.lista_imagenes = []
 
@@ -34,21 +31,19 @@ class Mario(pygame.sprite.Sprite):
         
         self.image = self.lista_imagenes[self.anim_index]
         
-         # Posición y velocidad
-        self.rect = self.image.get_rect() #hitbox del mario
+        self.rect = self.image.get_rect() 
         self.rect.x = x * self.TX
         self.rect.y = y * self.TY
         self.rect.inflate_ip(-2, 0)
-         # Dirección, aceleracion, limites y físicas:
-        # VALORES RELATIVOS A LA HORIZONTAL:
+        
         self.DIRECC_HORIZONTAL = 'hor'
-        self.acc = 0    # Aceleracion (vel) del personaje
-        self.acc_acum = 0   # Aceleracion-acumulada (solo para poder saltar más)
+        self.acc = 0    
+        self.acc_acum = 0   
         self.flip = False
         self.VEL_MAX = 7.5
         self.ACELERACION = 0.14
         self.DECELERACION = 0.2
-       # VALORES RELATIVOS A LA VERTICAL:
+        
         self.DIRECC_VERTICAL = 'ver'
         self.vel_y = 0
         self.GRAVEDAD = self.game.GRAVEDAD
@@ -58,31 +53,35 @@ class Mario(pygame.sprite.Sprite):
         self.POT_EXTRA = 1.75 
         self.secuencia_final = False
         
-        # Velocidad de las animaciones:
+        # --- VARIABLES SUPER MARIO ---
+        self.es_grande = False
+        self.en_transformacion = False
+        self.timer_transformacion = 0
+        self.imagenes_pequenas = self.lista_imagenes.copy()
+        self.imagenes_grandes = []
+        
         self.ultimo_update = pygame.time.get_ticks()
         self.VEL_FRAMES_ANIMA = 90
         self.ganado = False
         
     def update(self):
-        self.mover() 
-        self.animacion()
-        self.chequear_muerte()
+        if self.en_transformacion:
+            self.animacion_transformacion()
+        else:
+            self.mover() 
+            self.animacion()
+            self.chequear_muerte()
         
     def chequear_muerte(self):
         if self.rect.y > 800: 
-            self.game.quitar_vida() # Avisa al nivel
+            self.game.quitar_vida() 
 
     def morir(self):
-        # Esta función ya no es tan necesaria si chequear_muerte 
-        # llama directamente a quitar_vida, pero mantenla vacía o con un print
         pass
         
     def mover(self):
-         # --- SECUENCIA FINAL (META) ---
         if self.secuencia_final:
             limite_suelo = (13 * self.TY) + self.game.offset_y
-
-            # Paso A: Bajando por el mástil
             if not hasattr(self, "en_suelo_final"):
                 if self.rect.bottom < limite_suelo:
                     self.rect.y += 4
@@ -91,24 +90,17 @@ class Mario(pygame.sprite.Sprite):
                 else:
                     self.rect.bottom = limite_suelo
                     self.en_suelo_final = True
-                    self.saltando = False # IMPORTANTE: Apagamos el salto aquí
+                    self.saltando = False 
                     self.vel_y = 0
                     return
-                
-                # Paso B: Caminata al castillo
             else:
                 bandera = self.game.bandera_obj 
-
-                # Esperar a que la bandera llegue abajo (fila 12 aprox)
                 if bandera.rect.y < (12 * self.TY): 
                     self.acc = 0
                     return 
-
-                # Si ya bajó, caminamos hacia la derecha
                 self.acc = 2 
                 self.flip = False 
                 self.rect.x += self.acc 
-
                 pos_mundo = self.rect.x + self.game.game.scroll_x
                 if pos_mundo >= (204 * self.TX): 
                     self.acc = 0 
@@ -116,9 +108,7 @@ class Mario(pygame.sprite.Sprite):
                     self.game.iniciar_fundido = True 
                 return
 
-        # --- MOVIMIENTO NORMAL (Solo si no es secuencia_final) ---
         self.aplicar_gravedad()
-        # ... resto de tu código (teclas, etc.)
         teclas = pygame.key.get_pressed()
 
         if teclas[pygame.K_LEFT]:
@@ -134,10 +124,6 @@ class Mario(pygame.sprite.Sprite):
         if teclas[pygame.K_SPACE]:
             self.saltar()
 
-        
-
-
-
         self.game.game.scroll_x += self.acc
         self.manejar_colisiones_obstaculos(self.DIRECC_HORIZONTAL)
         self.limites_mundo()
@@ -146,66 +132,48 @@ class Mario(pygame.sprite.Sprite):
         if flip:
             self.acc -= self.ACELERACION
             self.acc = -self.VEL_MAX if self.acc < -self.VEL_MAX else self.acc
-
             self.acc_acum -= self.ACELERACION
             self.acc_acum = -self.VEL_MAX if self.acc_acum < -self.VEL_MAX else self.acc_acum
-            
         else:
             self.acc += self.ACELERACION
             self.acc = self.VEL_MAX if self.acc > self.VEL_MAX else self.acc
-
             self.acc_acum += self.ACELERACION
             self.acc_acum = self.VEL_MAX if self.acc_acum > self.VEL_MAX else self.acc_acum
             
-    
     def aplicar_gravedad(self):
         self.vel_y += self.GRAVEDAD
         self.rect.y += int(self.vel_y)
-        self.en_suelo = False  # se actualizará en colisiones
-
+        self.en_suelo = False  
         self.manejar_colisiones_obstaculos(self.DIRECC_VERTICAL)
         
-   
     def saltar(self):
         if self.en_suelo:
             self.vel_y = self.POTENCIA_SALTO - abs(self.acc_acum / self.POT_EXTRA)
             self.en_suelo = False
             self.saltando = True
-            self.game.sonidos.reproducir("jumpbros.ogg")
-    
-            
-            
+            try:
+                self.game.sonidos.reproducir("jumpbros.ogg")
+            except:
+                pass
             
     def manejar_colisiones_obstaculos(self, hor_ver):
-        #Checkeamos los tiles del escenario que son 'solidos' (bloques, suelo, tuberias)
         nivel = NIVEL_1
         ancho_tiles = self.game.COLUMNAS
         alto_tiles = len(nivel) // ancho_tiles
-
         mario_rect = self.rect
-        
+        margen_tiles = 2 
 
-        # Determinar el área de tiles a revisar cerca de Mario
-        margen_tiles = 2  # chequeamos un margen alrededor de Mario
-
-        # Calculamos los rangos de los bucles for (checkeando solo cercanos, NO todo el nivel):
         col_inicio = max((self.rect.left + self.game.game.scroll_x) // self.TX - margen_tiles, 0)
         col_fin = min((self.rect.right + self.game.game.scroll_x) // self.TX + margen_tiles, ancho_tiles)
-
         fila_inicio = max(self.rect.top // self.TY - margen_tiles, 0)
         fila_fin = min(self.rect.bottom // self.TY + margen_tiles, alto_tiles)
 
         for fila in range(int(fila_inicio), int(fila_fin)):
             for col in range(int(col_inicio), int(col_fin)):
-                # Obtenemos el indice y el valor:
                 index = fila * ancho_tiles + col
-
                 if index >= len(nivel):
                     continue
-
                 tile_id = nivel[index]
-
-                # Averiguamos si el número de tile (id), está en la lista 'solidos':
                 if tile_id in self.game.TILES_SOLIDOS:
                     tile_rect = pygame.Rect(col * self.TX - self.game.game.scroll_x, 
                         (fila * self.TY) + self.game.offset_y, 
@@ -213,96 +181,69 @@ class Mario(pygame.sprite.Sprite):
                     if mario_rect.colliderect(tile_rect):
                         self.resolver_colision(tile_rect, hor_ver,tile_id, index)
     
-
     def resolver_colision(self, tile_rect, hor_ver, tile_id, index):
-        # Acciones dependiendo de donde colisionemos (VERTICAL)
         if hor_ver == self.DIRECC_VERTICAL:
-            if self.vel_y > 0:  # cayendo
+            if self.vel_y > 0:  
                 if self.rect.bottom > tile_rect.top and self.rect.top < tile_rect.top and abs(
                     self.rect.centerx - tile_rect.centerx) < self.TX - (self.game.ESCALA * 3):
-                
                     self.vel_y = 0
                     self.rect.bottom = tile_rect.top
                     self.en_suelo = True
                     self.saltando = False
 
-            elif self.vel_y < 0:  # subiendo
+            elif self.vel_y < 0:  
                 if self.rect.top < tile_rect.bottom and self.rect.bottom > tile_rect.bottom and abs(
                     self.rect.centerx - tile_rect.centerx) < self.TX - (self.game.ESCALA * 3):
-                
                     self.vel_y = 0
                     self.rect.top = tile_rect.bottom
                     
                     if tile_id == 14:
                         if index == 1929 or index == 1986 or index == 1169:
                             if not index in hongo.ARRAY_DESACTIVADAS:
-                                
                                 self.game.instanciar_hongo(index, tile_rect.left, tile_rect.top - self.TY, False)
-                        
                         elif not index in moneda.ARRAY_DESACTIVADAS:
-                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                            moneda_x = tile_rect.left + self.game.game.scroll_x 
                             moneda_y = tile_rect.top - self.TY
                             self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
                             
-                    
                     elif tile_id == 15:
-                        if index == 2002:
-                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
-                            moneda_y = tile_rect.top - self.TY
-                            self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
-                        elif index == 2009:
-                            moneda_x = tile_rect.left + self.game.game.scroll_x  # Posición mundial
+                        if index == 2002 or index == 2009:
+                            moneda_x = tile_rect.left + self.game.game.scroll_x 
                             moneda_y = tile_rect.top - self.TY
                             self.game.instanciar_moneda(index, moneda_x, moneda_y, False)
 
-                            
-                        
-       
         elif hor_ver == self.DIRECC_HORIZONTAL:
-            if self.acc > 0:  # derecha
+            if self.acc > 0:  
                 if self.rect.right > tile_rect.left and self.rect.left < tile_rect.left:
                     self.acc = 0
-
-            elif self.acc < 0:  # izquierda
+            elif self.acc < 0:  
                 if self.rect.left < tile_rect.right and self.rect.right > tile_rect.right:
                     self.acc = 0
             
     def animacion(self):
-        # 1. PRIORIDAD: Bajando por el mástil (Aún no toca el suelo)
         if self.secuencia_final and not hasattr(self, "en_suelo_final"):
             self.image = self.lista_imagenes[5]
             self.image = pygame.transform.flip(self.image, self.flip, False)
             return
 
-        # 2. ANIMACION SALTANDO
-        # Agregamos "and not hasattr(self, 'en_suelo_final')" para que, si ya aterrizó 
-        # en la meta, deje de mostrar el frame de salto y pase a caminar.
         if self.saltando and not hasattr(self, "en_suelo_final"):
             self.image = self.lista_imagenes[5]
             self.image = pygame.transform.flip(self.image, self.flip, False)
             return
 
-        # 3. CICLO DE CAMINATA Y PARADO
         ahora = pygame.time.get_ticks()
-
-        # Manejo del tiempo para cambiar el índice del frame
         if ahora - self.ultimo_update > self.VEL_FRAMES_ANIMA:
             self.ultimo_update = ahora
             self.anim_index += 1
             if self.anim_index >= self.rango_animacion[1]:
                 self.anim_index = self.rango_animacion[0]
         
-        # DECISIÓN DE QUÉ IMAGEN MOSTRAR
-        # Si la aceleración es casi cero, mostramos pose de parado (Frame 0)
         if -0.1 < self.acc < 0.1:
             self.image = self.lista_imagenes[0]
         else:
-            # Si hay movimiento (como el self.acc = 2 de la meta), animamos caminando
             self.image = self.lista_imagenes[self.anim_index]
 
-        # Aplicamos el flip horizontal siempre al final de la lógica de suelo
         self.image = pygame.transform.flip(self.image, self.flip, False)
-                
                 
     def limites_mundo(self):
         END_WORLD = self.game.END_WORLD_SCROLL[self.game.nivel - 1] * self.game.ESCALA 
@@ -312,11 +253,83 @@ class Mario(pygame.sprite.Sprite):
             self.game.game.scroll_x = END_WORLD
             
     def aplicar_gravedad_final(self):
-        # Mario baja por el mástil
         limite_suelo = (13 * self.TY) + self.game.offset_y
         if self.rect.bottom < limite_suelo:
-            self.rect.y += 3  # Velocidad de descenso de Mario
+            self.rect.y += 3  
             self.vel_y = 0 
         else:
             self.rect.bottom = limite_suelo
-            # Aquí podrías disparar el cambio de nivel o música de victoria
+
+    # Metodo nuevo, metodo crecer para hacer a mario mas grande cuando toca el hongo
+    def crecer(self):
+        if not self.es_grande:
+            self.es_grande = True
+            self.en_transformacion = True
+            self.timer_transformacion = pygame.time.get_ticks()
+            try:
+                self.game.sonidos.reproducir("smb_powerup.wav") 
+            except:
+                pass
+            
+           #Aqui pueden jugar con el ancho y el alto para ver como queda mejor
+            nuevo_ancho = int(self.TX * 1.3)
+            nuevo_alto = self.TY * 2
+            
+            self.imagenes_grandes = []
+            for img in self.imagenes_pequenas:
+                img_grande = pygame.transform.scale(img, (nuevo_ancho, nuevo_alto))
+                self.imagenes_grandes.append(img_grande)
+            
+            self.lista_imagenes = self.imagenes_grandes
+    
+   
+    def encoger(self):
+        if self.es_grande and not self.en_transformacion:
+            self.es_grande = False
+            self.en_transformacion = True
+            self.timer_transformacion = pygame.time.get_ticks()
+        
+        # Guardamos la posición del CENTRO (más estable que los pies)
+            pos_centro = self.rect.center
+        
+        # Cambiamos a imágenes pequeñas
+            self.lista_imagenes = self.imagenes_pequenas
+            self.image = self.lista_imagenes[0]
+        
+        # Colocamos a Mario con el MISMO CENTRO
+        # Esto mantiene la posición relativa y la gravedad lo corregirá
+            self.rect = self.image.get_rect(center=pos_centro)
+        
+            try:
+                self.game.sonidos.reproducir("pipe.wav") 
+            except:
+                pass
+    
+    def animacion_transformacion(self, tiempo_transcurrido=None):
+        ahora = pygame.time.get_ticks()
+        tiempo_transcurrido = ahora - self.timer_transformacion
+    
+        viejo_bottom = self.rect.bottom  # Esto ya está en coordenadas del mundo
+        centro_x = self.rect.centerx
+    
+        if tiempo_transcurrido < 900: 
+            if (tiempo_transcurrido // 100) % 2 == 0:
+                self.image = self.imagenes_pequenas[0]
+            else:
+                self.image = self.imagenes_grandes[0]
+            
+            self.rect = self.image.get_rect(midbottom=(centro_x, viejo_bottom))
+        else:
+            self.en_transformacion = False
+        # IMPORTANTE: Cuando termina la transformación, 
+        # si es grande usa imágenes grandes, si es pequeño usa pequeñas
+            if self.es_grande:
+                self.image = self.imagenes_grandes[0]
+                self.lista_imagenes = self.imagenes_grandes
+            else:
+                self.image = self.imagenes_pequenas[0]
+                self.lista_imagenes = self.imagenes_pequenas
+            
+            self.rect = self.image.get_rect(midbottom=(centro_x, viejo_bottom))
+            self.rect.inflate_ip(-2, 0)
+    

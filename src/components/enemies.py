@@ -1,6 +1,8 @@
 import pygame
 from src.utils.constantsmario import *
 from src.utils.helpers import *
+from src.components.player import *
+
 
 
 class Goomba(pygame.sprite.Sprite):
@@ -39,7 +41,8 @@ class Goomba(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = x * self.TX
         self.rect.y = y * self.TY
-        self.vel_x = -1
+        #Cambie la velocidad de los goombas, pidio erick cambiar a -2
+        self.vel_x = -2
         self.vel_y = 0
         # Activo / Parado:
         self.activo = False
@@ -97,7 +100,10 @@ class Goomba(pygame.sprite.Sprite):
                 mario.vel_y = mario.POTENCIA_SALTO
                 self.game.sonidos.reproducir("squit.mp3")
              else:
-                 self.game.quitar_vida()
+                 if mario.es_grande:
+                     mario.encoger()
+                 elif not mario.en_transformacion:
+                    self.game.quitar_vida()
               
             
         
